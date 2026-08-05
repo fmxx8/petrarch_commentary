@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Канционере целиком{% endblock %}
+{% block bodyclass %}wide{% endblock %}
+
+{% block content %}
+
+<div class="readerhead">
+  <h1>Канционере целиком</h1>
+  <p class="hint">{{ anchor_count }} {{ plural(anchor_count, 'стихотворение', 'стихотворения', 'стихотворений') }}
+    с текстом из {{ max_poem }}. Кликните строку —
+    комментарии к ней откроются сбоку, не уводя со страницы. Цифра справа от строки —
+    сколько заметок к ней привязано.</p>
+
+  <div class="filters">
+    <a class="chip {% if author == 'any' %}active{% endif %}" href="/read">все комментаторы</a>
+    {% for src in authors %}
+      <a class="chip {% if author == src.author %}active{% endif %}"
+         href="/read?author={{ src.author|urlencode }}">
+        {{ src.author }}
+      </a>
+    {% endfor %}
+  </div>
+
+  <details class="poemindex">
+    <summary>Перейти к стихотворению</summary>
+    <p class="poemgrid">
+      {% for e in entries %}
+        <a href="#p{{ e.num }}" class="{% if not e.in_anchor %}empty{% endif %}">{{ e.num }}</a>
+      {% endfor %}
+    </p>
+  </details>
+</div>
+
+<div class="reader" data-reader data-author="{{ author }}" data-focus="{{ focus or '' }}">
+
+  <div class="readertext">
+    {% for e in entries %}
+      {% if e.in_anchor %}
+        <section class="poem" id="p{{ e.num }}">
+          <h2>
+            <a href="{{ poem_url(e.num, author=author) }}" data-p="{{ e.num }}">
+              <span class="pnum">{{ e.num }}</span>
+              <em>{{ e.form }}</em>
+              {% if e.general_count %}
+                <span class="badge" title="заметок ко всему стихотворению">{{ e.general_count }} к стихотворению</span>
+              {% endif %}
+            </a>
+          </h2>
+          <ol class="lines">
+            {% for num, text, count in e.lines %}
+              <li>
+                <a href="{{ poem_url(e.num, line=num, author=author) }}"
+                   data-p="{{ e.num }}" data-l="{{ num }}">
+                  <span class="num">{{ num }}</span>
+                  <span class="verse">{{ text }}</span>
+                  {% if count %}<span class="badge">{{ count }}</span>{% endif %}
+                </a>
+              </li>
+            {% endfor %}
+          </ol>
+        </section>
+      {% else %}
+        <section class="poem missing" id="p{{ e.num }}">
+          <h2>
+            <a href="{{ poem_url(e.num, author=author) }}" data-p="{{ e.num }}">
+              <span class="pnum">{{ e.num }}</span>
+              <em>текста нет в якоре</em>
+              {% if e.general_count %}
+                <span class="badge" title="заметок ко всему стихотворению">{{ e.general_count }} к стихотворению</span>
+              {% endif %}
+            </a>
+          </h2>
+        </section>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <aside class="panel" id="panel">
+    <p class="placeholder">Кликните строку или номер стихотворения слева — здесь появятся комментарии.</p>
+  </aside>
+
+</div>
+
+<script src="{{ url_for('static', path='reader.js') }}" defer></script>
+
+{% endblock %}

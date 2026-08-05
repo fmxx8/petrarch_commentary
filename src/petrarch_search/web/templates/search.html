@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}{% if q %}{{ q }} — поиск{% else %}Petrarch Commentary Search{% endif %}{% endblock %}
+{# The page itself carries the search form, so the slim one in the bar would only duplicate it. #}
+{% block topsearch %}{% endblock %}
+
+{% block content %}
+
+{% if not q and not error %}
+
+<section class="hero">
+  <h1>Комментарии к «Канционере» Петрарки</h1>
+  <p class="lede">Пять изданий — Santagata, Bettarini, Carducci, Musa и Durling;
+    {{ db_stats.segments }} {{ plural(db_stats.segments, 'фрагмент', 'фрагмента', 'фрагментов') }},
+    привязанных к стихотворениям и отдельным строкам.</p>
+
+  <div class="entries">
+
+    <form class="entry" action="/" method="get" role="search">
+      <h2>Искать по комментариям</h2>
+      <p class="entrylede">Полнотекстовый поиск по тексту заметок: слово, имя, мотив.
+        Ищет в комментариях, а не в самих стихотворениях.</p>
+
+      <div class="field">
+        <input type="search" name="q" placeholder="Laura, lauro, dolcezza…"
+               aria-label="Поисковый запрос" autofocus>
+        <button type="submit">Найти</button>
+      </div>
+
+      <div class="field secondary">
+        <select name="author" aria-label="Комментатор">
+          <option value="any">все комментаторы</option>
+          {% for src in authors %}
+            <option value="{{ src.author }}">{{ src.author }}{% if src.year %} ({{ src.year }}){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <p class="quick">Например:
+        <a href="/?q=Laura">Laura</a>,
+        <a href="/?q=dolcezza">dolcezza</a>,
+        <a href="/?q=Dante">Dante</a>,
+        <a href="/?q=Laura+OR+lauro">Laura OR lauro</a>
+      </p>
+    </form>
+
+    <div class="entry">
+      <h2>Читать текст</h2>
+      <p class="entrylede">Весь «Канционере» подряд. Клик по строке открывает
+        комментарии к ней сбоку, не уводя со страницы.</p>
+
+      <p class="field"><a class="bigbtn" href="/read">Открыть весь текст →</a></p>
+
+      <form class="field" action="/goto" method="get">
+        <input type="number" name="poem" min="1" max="{{ max_poem }}"
+               placeholder="Номер стихотворения, 1–{{ max_poem }}" aria-label="Номер стихотворения">
+        <button type="submit">Перейти</button>
+      </form>
+
+      <p class="quick">Например:
+        <a href="/poem/1">1</a>,
+        <a href="/poem/90">90</a>,
+        <a href="/poem/126">126</a>,
+        <a href="/poem/264">264</a>,
+        <a href="/poem/366">366</a>
+      </p>
+    </div>
+
+  </div>
+
+  <p class="syntaxhint">В запросе работают операторы SQLite FTS5:
+    <code>Laura OR lauro</code>, <code>Laura NOT Dante</code>,
+    <code>"a l'aura"</code> для точной фразы, <code>dolc*</code> для префикса.</p>
+</section>
+
+{% else %}
+
+<form class="refine" action="/" method="get" role="search">
+  <input type="search" name="q" value="{{ q }}" aria-label="Поисковый запрос">
+  <select name="author" aria-label="Комментатор">
+    <option value="any">все комментаторы</option>
+    {% for src in authors %}
+      <option value="{{ src.author }}" {% if author == src.author %}selected{% endif %}>{{ src.author }}</option>
+    {% endfor %}
+  </select>
+  <select name="limit" aria-label="Сколько результатов">
+    {% for value in [20, 50, 100, 200] %}
+      <option value="{{ value }}" {% if limit == value %}selected{% endif %}>{{ value }} результатов</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Найти</button>
+</form>
+
+{% if error %}
+  <p class="notice error">{{ error }}</p>
+{% endif %}
+
+{% if searched %}
+  <p class="resultcount">
+    {% if results %}
+      Найдено {{ results|length }}
+      {{- ' ' }}{{ plural(results|length, 'фрагмент', 'фрагмента', 'фрагментов') }}
+      {%- if results|length == limit %} (показан лимит){% endif %}
+      по запросу <strong>{{ q }}</strong>
+      {%- if poem %}, стихотворение {{ poem }}{% endif %}{% if line %}, строка {{ line }}{% endif %}
+    {% else %}
+      По запросу <strong>{{ q }}</strong> ничего не найдено.
+    {% endif %}
+  </p>
+
+  {% for r in results %}
+    <article class="result">
+      <div class="meta">
+        <span class="author">{{ r.author }}{% if r.year %}, {{ r.year }}{% endif %}</span>
+        {% for n in r.poem_nums %}
+          <a class="ref" href="{{ poem_url(n, author=author) }}">стихотворение {{ n }}</a>
+        {% endfor %}
+        {% if r.line_label and r.poem_nums %}
+          <a class="ref" href="{{ poem_url(r.poem_nums[0], line=r.line_start, author=author) }}">v. {{ r.line_label }}</a>
+        {% endif %}
+        {% if r.page %}<span class="page">p. {{ r.page }}</span>{% endif %}
+      </div>
+      <p class="excerpt">{{ r.excerpt }}</p>
+      <details>
+        <summary>сегмент целиком</summary>
+        <p class="fulltext">{{ r.text }}</p>
+      </details>
+    </article>
+  {% endfor %}
+
+  {% if results and results|length == limit and limit < 500 %}
+    <p class="more">
+      <a href="/?q={{ q|urlencode }}&amp;author={{ author|urlencode }}{% if poem %}&amp;poem={{ poem }}{% endif %}{% if line %}&amp;line={{ line }}{% endif %}&amp;limit={{ [limit * 5, 500]|min }}">
+        Показать больше результатов
+      </a>
+    </p>
+  {% endif %}
+{% endif %}
+
+{% endif %}
+
+{% endblock %}

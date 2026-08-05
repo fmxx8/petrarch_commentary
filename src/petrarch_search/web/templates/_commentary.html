@@ -1,0 +1,33 @@
+<header class="panelhead">
+  <h3>
+    {% if line %}Стихотворение {{ poem_num }}, строка {{ line }}
+    {% else %}Стихотворение {{ poem_num }} — заметки к стихотворению целиком{% endif %}
+  </h3>
+  <button type="button" class="panelclose" data-close aria-label="Закрыть">×</button>
+</header>
+
+{% if line_text %}
+  <blockquote class="verseline">{{ line_text }}</blockquote>
+{% endif %}
+
+{% if segments %}
+  {% for s in segments %}
+    <article class="segment">
+      <div class="meta">
+        <span class="author">{{ s.author }}{% if s.year %}, {{ s.year }}{% endif %}</span>
+        {% if s.line_label %}<span class="ref">v. {{ s.line_label }}</span>{% endif %}
+        {% if s.page %}<span class="page">p. {{ s.page }}</span>{% endif %}
+      </div>
+      <p class="fulltext">{{ s.text }}</p>
+    </article>
+  {% endfor %}
+{% else %}
+  <p class="notice">
+    {% if line %}К этой строке комментариев нет{% else %}Заметок ко всему стихотворению нет{% endif %}{% if author != 'any' %}
+    у выбранного комментатора{% endif %}.
+  </p>
+{% endif %}
+
+<p class="hint">
+  <a href="{{ poem_url(poem_num, line=line, author=author) }}">открыть отдельной страницей →</a>
+</p>

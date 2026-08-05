@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Источники{% endblock %}
+
+{% block content %}
+
+<h1>Что лежит в индексе</h1>
+
+<table class="sources">
+  <thead>
+    <tr><th>Комментатор</th><th>Год</th><th>Язык</th><th>Сегментов</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for src in authors %}
+      <tr>
+        <td>{{ src.author }}</td>
+        <td>{{ src.year or '—' }}</td>
+        <td>{{ src.language }}</td>
+        <td class="num">{{ src.segment_count }}</td>
+        <td><a href="/?q=Laura&amp;author={{ src.author|urlencode }}">поиск в нём</a></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p>Якорный текст стихотворений: {{ anchor_poems|length }} из {{ max_poem }}. Стихотворение, которого нет в
+  якоре, всё равно открывается — просто без текста, с одними комментариями.</p>
+
+<h2>Стихотворения с текстом</h2>
+<p class="poemgrid">
+  {% for n in anchor_poems %}<a href="{{ poem_url(n) }}">{{ n }}</a>{% endfor %}
+</p>
+
+{% endblock %}

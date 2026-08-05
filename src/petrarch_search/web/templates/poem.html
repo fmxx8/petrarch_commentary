@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Стихотворение {{ poem_num }}{% if line %}, строка {{ line }}{% endif %}{% endblock %}
+
+{% block content %}
+
+<nav class="poemnav">
+  {% if prev_poem %}<a href="{{ poem_url(prev_poem, author=author) }}">← {{ prev_poem }}</a>{% else %}<span></span>{% endif %}
+  <h1>Стихотворение {{ poem_num }}{% if poem and poem.form %} <em>({{ poem.form }})</em>{% endif %}</h1>
+  {% if next_poem %}<a href="{{ poem_url(next_poem, author=author) }}">{{ next_poem }} →</a>{% else %}<span></span>{% endif %}
+</nav>
+
+{% if in_anchor %}
+  <section class="poemtext">
+    <ol class="lines">
+      {% for num, text in poem_lines %}
+        <li class="{% if line == num %}current{% endif %}">
+          <a href="{{ poem_url(poem_num, line=num, author=author) }}">
+            <span class="num">{{ num }}</span>
+            <span class="verse">{{ text }}</span>
+            {% if line_counts.get(num) %}<span class="badge">{{ line_counts.get(num) }}</span>{% endif %}
+          </a>
+        </li>
+      {% endfor %}
+    </ol>
+    <p class="hint">Кликните строку, чтобы увидеть глоссы к ней. Цифра справа — сколько заметок привязано к строке.</p>
+  </section>
+{% else %}
+  <p class="notice">Текста этого стихотворения нет в якорном индексе (в нём {{ db_stats.poems }} из {{ max_poem }});
+    ниже только комментарии.</p>
+{% endif %}
+
+<section class="filters">
+  <a class="chip {% if author == 'any' %}active{% endif %}"
+     href="{{ poem_url(poem_num, line=line, show_all=show_all) }}">все комментаторы</a>
+  {% for src in authors %}
+    <a class="chip {% if author == src.author %}active{% endif %}"
+       href="{{ poem_url(poem_num, line=line, author=src.author, show_all=show_all) }}">
+      {{ src.author }}
+    </a>
+  {% endfor %}
+</section>
+
+{% if line %}
+  <div class="modebar">
+    <h2>Комментарии к строке {{ line }}</h2>
+    <a href="{{ poem_url(poem_num, author=author) }}">← ко всему стихотворению</a>
+  </div>
+  {% if line_text %}
+    <blockquote class="verseline">{{ line_text }}</blockquote>
+  {% elif line_beyond_anchor %}
+    <p class="notice">Строка {{ line }} не извлеклась в якорный текст, но комментарии к ней показаны.</p>
+  {% endif %}
+{% else %}
+  <div class="modebar">
+    <h2>{% if show_all %}Все заметки{% else %}Общие заметки к стихотворению{% endif %}</h2>
+    {% if show_all %}
+      <a href="{{ poem_url(poem_num, author=author) }}">только общие</a>
+    {% else %}
+      <a href="{{ poem_url(poem_num, author=author, show_all=true) }}">показать и построчные глоссы</a>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% if segments %}
+  {% for s in segments %}
+    <article class="segment">
+      <div class="meta">
+        <span class="author">{{ s.author }}{% if s.year %}, {{ s.year }}{% endif %}</span>
+        {% if s.line_label %}<span class="ref">v. {{ s.line_label }}</span>{% endif %}
+        {% if s.page %}<span class="page">p. {{ s.page }}</span>{% endif %}
+      </div>
+      <p class="fulltext">{{ s.text }}</p>
+    </article>
+  {% endfor %}
+{% else %}
+  <p class="notice">
+    {% if line %}
+      К строке {{ line }} комментариев нет{% if author != 'any' %} у выбранного комментатора{% endif %}.
+    {% elif not show_all %}
+      Заметок ко всему стихотворению нет — есть только построчные глоссы.
+      <a href="{{ poem_url(poem_num, author=author, show_all=true) }}">Показать их</a>.
+    {% else %}
+      Комментариев к этому стихотворению пока нет{% if author != 'any' %} у выбранного комментатора{% endif %}.
+    {% endif %}
+  </p>
+{% endif %}
+
+{% if hiding_deprioritized %}
+  <p class="hint">
+    {% for name in deprioritized %}
+      Короткие лемма-глоссы <strong>{{ name }}</strong> в этом виде скрыты —
+      <a href="{{ poem_url(poem_num, line=line, author=name, show_all=show_all) }}">показать только их</a>.
+    {% endfor %}
+  </p>
+{% endif %}
+
+{% endblock %}

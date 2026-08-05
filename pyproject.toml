@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "petrarch-search"
+version = "0.1.0"
+description = "Local search engine for Petrarch Canzoniere commentaries"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "typer>=0.12",
+    "rich>=13.0",
+    "pymupdf>=1.24",
+]
+
+[project.urls]
+Homepage = "https://github.com/fmxx8/petrarch_commentary"
+Repository = "https://github.com/fmxx8/petrarch_commentary"
+Issues = "https://github.com/fmxx8/petrarch_commentary/issues"
+
+[project.optional-dependencies]
+ocr = [
+    "pytesseract>=0.3",
+    "pdf2image>=1.17",
+    "Pillow>=10.0",
+]
+web = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "jinja2>=3.1",
+]
+
+[project.scripts]
+petrarch-search = "petrarch_search.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+petrarch_search = ["web/templates/*.html", "web/static/*.css"]

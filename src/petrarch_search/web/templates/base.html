@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Petrarch Commentary Search{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body class="{% block bodyclass %}{% endblock %}">
+
+<header class="topbar">
+  <a class="brand" href="/">Petrarch<em>Search</em></a>
+
+  {% block topsearch %}
+  <form class="topsearch" action="/" method="get" role="search">
+    <input type="search" name="q" value="{{ q|default('', true) }}"
+           placeholder="Поиск по комментариям…" aria-label="Поисковый запрос">
+    <button type="submit">Найти</button>
+  </form>
+  {% endblock %}
+
+  <nav class="topnav">
+    <a href="/read" {% if nav == 'read' %}class="current"{% endif %}>Читать текст</a>
+    <a href="/sources" {% if nav == 'sources' %}class="current"{% endif %}>Источники</a>
+  </nav>
+</header>
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<footer>
+  <span>{{ db_stats.poems }} {{ plural(db_stats.poems, 'стихотворение', 'стихотворения', 'стихотворений') }} с текстом ·
+    {{ db_stats.commentaries }} {{ plural(db_stats.commentaries, 'издание', 'издания', 'изданий') }} ·
+    {{ db_stats.segments }} {{ plural(db_stats.segments, 'фрагмент', 'фрагмента', 'фрагментов') }}
+    комментария</span>
+</footer>
+
+</body>
+</html>

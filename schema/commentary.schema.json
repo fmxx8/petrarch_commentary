@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Petrarch Commentary",
+  "type": "object",
+  "required": ["id", "author", "language", "segments"],
+  "properties": {
+    "id": { "type": "string" },
+    "author": { "type": "string" },
+    "year": { "type": "string" },
+    "language": { "type": "string", "enum": ["latin", "italian", "english", "other"] },
+    "source_pdf": { "type": "string" },
+    "edition_note": { "type": "string" },
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["poem_nums", "text"],
+        "properties": {
+          "poem_nums": {
+            "type": "array",
+            "items": { "type": "integer", "minimum": 1, "maximum": 366 }
+          },
+          "line_start": { "type": "integer", "minimum": 1 },
+          "line_end": { "type": "integer", "minimum": 1 },
+          "page": { "type": "integer", "minimum": 1 },
+          "text": { "type": "string", "minLength": 1 },
+          "confidence": { "type": "string", "enum": ["manual", "auto", "reviewed"] }
+        }
+      }
+    }
+  }
+}

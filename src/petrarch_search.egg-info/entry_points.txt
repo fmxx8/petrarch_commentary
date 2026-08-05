@@ -1,0 +1,2 @@
+[console_scripts]
+petrarch-search = petrarch_search.cli:app
